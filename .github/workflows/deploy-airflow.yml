@@ -1,26 +1,19 @@
-name: Deploy DAGs to Airflow
-
-on:
-  push:
-    branches:
-      - main 
-    paths:
-      - 'dags/**'  
-
+name: GitHub Actions Demo
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+on: [push]
 jobs:
-  deploy:
+  build:
+    name: Build
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Upload DAGs to Airflow
-      env:
-        AIRFLOW_HOST: ${{ secrets.AIRFLOW_HOST }}
-        AIRFLOW_USER: ${{ secrets.AIRFLOW_USER }}
-        AIRFLOW_PASSWORD: ${{ secrets.AIRFLOW_PASSWORD }}
-      run: |
-        sudo apt-get update && sudo apt-get install -y sshpass
-        
-        sshpass -p "$AIRFLOW_PASSWORD" scp -r -o StrictHostKeyChecking=no dags/ "$AIRFLOW_USER@$AIRFLOW_HOST:/opt/airflow/dags/"
+    - uses: actions/checkout@v4
+    - name: copy file via ssh password
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.AIRFLOWSERVER }}
+        username: ${{ secrets.AIRFLOWUSER }}
+        password: ${{ secrets.AIRFLOWPASSWORD }}
+        port: ${{ secrets.AIRFLOWPORT }}
+        source: "dags/*.py"
+        target: "/opt/airflow/dags/"
+        overwrite: true
