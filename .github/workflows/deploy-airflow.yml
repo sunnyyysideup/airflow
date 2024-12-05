@@ -1,0 +1,26 @@
+name: Deploy DAGs to Airflow
+
+on:
+  push:
+    branches:
+      - main 
+    paths:
+      - 'dags/**'  
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Upload DAGs to Airflow
+      env:
+        AIRFLOW_HOST: ${{ secrets.AIRFLOW_HOST }}
+        AIRFLOW_USER: ${{ secrets.AIRFLOW_USER }}
+        AIRFLOW_PASSWORD: ${{ secrets.AIRFLOW_PASSWORD }}
+      run: |
+        sudo apt-get update && sudo apt-get install -y sshpass
+        
+        sshpass -p $AIRFLOW_PASSWORD scp -o StrictHostKeyChecking=no -r dags/ $AIRFLOW_USER@$AIRFLOW_HOST:/opt/airflow/dags/
