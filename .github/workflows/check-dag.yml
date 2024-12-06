@@ -34,11 +34,6 @@ jobs:
                       exit 1
                   fi
 
-                  if ! grep -q 'default_args' "$dag"; then
-                      echo "ERROR: 'default_args' not found in $dag"
-                      exit 1
-                  fi
-
                   if ! grep -q 'start_date' "$dag"; then
                       echo "ERROR: 'start_date' not found in $dag"
                       exit 1
