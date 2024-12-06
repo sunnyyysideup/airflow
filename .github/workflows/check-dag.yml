@@ -21,6 +21,10 @@ jobs:
         run: |
           pip install apache-airflow
 
+      - name: Initialize Airflow Database
+        run: |
+          airflow db init
+
       - name: Validate DAG files
         run: |
           if ls *.py > /dev/null 2>&1; then
