@@ -20,6 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install apache-airflow[cncf.kubernetes,pandas,virtualenv]
+      
       - name: Validate Python files
         run: |
           if ls *.py > /dev/null 2>&1; then
@@ -45,8 +46,6 @@ jobs:
           if ls *.py > /dev/null 2>&1; then
               for dag in *.py; do
                   echo "Checking imports in $dag"
-                  
-                  # Проверка на наличие импорта airflow и других обязательных модулей
                   if ! grep -q 'import airflow' "$dag" && ! grep -q 'from airflow' "$dag"; then
                       echo "ERROR: 'import airflow' or 'from airflow' not found in $dag"
                       exit 1
@@ -66,14 +65,10 @@ jobs:
           if ls *.py > /dev/null 2>&1; then
               for dag in *.py; do
                   echo "Checking start_date in $dag"
-                  
-                  # Проверка на наличие правильной даты в start_date
                   if ! grep -q 'start_date' "$dag"; then
                       echo "ERROR: 'start_date' not found in $dag"
                       exit 1
                   fi
-                  
-                  # Проверка на правильный формат даты
                   if ! grep -Pq 'start_date\s*=\s*datetime' "$dag"; then
                       echo "ERROR: Invalid start_date format in $dag"
                       exit 1
@@ -102,9 +97,3 @@ jobs:
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -d '{"labels":["automerge"]}' \
           "https://api.github.com/repos/${{ github.repository }}/issues/${{ steps.create_pr.outputs.pull-request-number }}/labels"
-      
-      - name: Auto-Merge Pull Request
-        if: success() && steps.create_pr.outputs.pull-request-url != ''
-        uses: pascalgn/automerge-action@v0.15.5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
