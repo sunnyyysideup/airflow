@@ -1,0 +1,48 @@
+name: Check and Merge DAG
+
+on:
+  push:
+    branches:
+      - 'dag/*' 
+
+jobs:
+  test_and_merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Install Airflow
+        run: |
+          pip install apache-airflow
+
+      - name: Validate DAG files
+        run: |
+          for dag in dags/*.py; do
+            echo "Validating $dag"
+            airflow dags test $(basename "$dag" .py) 2024-12-01 || exit 1
+          done
+
+      - name: Create Pull Request
+        id: create_pr
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "Validated and merging DAG into main"
+          branch: main
+          title: "Merging new DAG: ${{ github.ref_name }}"
+          body: |
+            This pull request contains a new or updated DAG:
+            - DAG Name: ${{ github.ref_name }}
+          labels: validated-dag
+
+      - name: Auto-Merge Pull Request
+        if: success() && steps.create_pr.outputs.pull-request-url != ''
+        uses: pascalgn/automerge-action@v0.15.5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          merge-method: squash
