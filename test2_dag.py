@@ -3,7 +3,7 @@ This DAG demonstrates a simple Airflow workflow that prints a message.
 """
 
 from datetime import datetime  
-from airflow import DAG 
+from airflow import DAG  
 from airflow.operators.python import PythonOperator
 
 def print_hello():
