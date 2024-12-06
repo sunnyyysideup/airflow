@@ -110,5 +110,6 @@ jobs:
         if: success() && steps.create_pr.outputs.pull-request-url != ''
         uses: pascalgn/automerge-action@v0.15.5
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          merge-method: squash
+           merge-method: squash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
