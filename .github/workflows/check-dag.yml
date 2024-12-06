@@ -28,13 +28,25 @@ jobs:
               for dag in *.py; do
                   echo "Validating Python file: $dag"
                   python -m py_compile "$dag" || exit 1
-
-                  echo "Running black on $dag"
+                  echo "Running pylint on $dag"
+                  pylint "$dag" || exit 1
+                  echo "Running black check on $dag"
                   black --check "$dag" || exit 1
               done
           else
               echo "No Python files found."
               exit 1
+          fi
+
+      - name: Format Python files with Black (optional)
+        run: |
+          if ls *.py > /dev/null 2>&1; then
+              for dag in *.py; do
+                  echo "Formatting with black: $dag"
+                  black "$dag"
+              done
+          else
+              echo "No Python files found for formatting."
           fi
 
       - name: Create Pull Request
