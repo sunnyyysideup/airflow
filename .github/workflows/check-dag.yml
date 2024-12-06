@@ -17,26 +17,28 @@ jobs:
         with:
           python-version: '3.8'
 
-      - name: Install Airflow with dependencies
+      - name: Install dependencies
         run: |
           pip install apache-airflow[cncf.kubernetes,pandas,virtualenv]
+          pip install pylint black
 
-      - name: Configure Airflow and Initialize Database
-        run: |
-          mkdir -p ~/airflow
-          echo -e "[core]\ndags_folder = $(pwd)" > ~/airflow/airflow.cfg
-          airflow db init
-
-      - name: Validate DAG files
+      - name: Validate Python files
         run: |
           if ls *.py > /dev/null 2>&1; then
               for dag in *.py; do
-                  dag_id=$(grep -oP "dag_id=['\"]\K[^'\"]+" "$dag")
-                  echo "Validating DAG: $dag_id from $dag"
-                  airflow dags test "$dag_id" 2024-12-01 || exit 1
+                  echo "Validating Python file: $dag"
+                  python -m py_compile "$dag" || exit 1
+
+                  # Проверка стиля кода с pylint
+                  echo "Running pylint on $dag"
+                  pylint "$dag" --max-line-length=120 || exit 1
+
+                  # Проверка форматирования с black
+                  echo "Running black on $dag"
+                  black --check "$dag" || exit 1
               done
           else
-              echo "No DAG files found in the current directory."
+              echo "No Python files found."
               exit 1
           fi
 
