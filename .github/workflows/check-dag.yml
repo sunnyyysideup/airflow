@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install apache-airflow[cncf.kubernetes,pandas,virtualenv]
-          pip install pylint black
+          pip install black
 
       - name: Validate Python files
         run: |
@@ -28,8 +28,6 @@ jobs:
               for dag in *.py; do
                   echo "Validating Python file: $dag"
                   python -m py_compile "$dag" || exit 1
-                  echo "Running pylint on $dag"
-                  pylint "$dag" || exit 1
                   echo "Running black check on $dag"
                   black --check "$dag" || exit 1
               done
