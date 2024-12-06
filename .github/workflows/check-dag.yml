@@ -23,11 +23,16 @@ jobs:
 
       - name: Validate DAG files
         run: |
-          for dag in dags/*.py; do
-              dag_id=$(grep -oP "dag_id=['\"]\K[^'\"]+" "$dag")
-              echo "Validating DAG: $dag_id from $dag"
-              airflow dags test "$dag_id" 2024-12-01 || exit 1
-          done
+          if ls *.py > /dev/null 2>&1; then
+              for dag in *.py; do
+                  dag_id=$(grep -oP "dag_id=['\"]\K[^'\"]+" "$dag")
+                  echo "Validating DAG: $dag_id from $dag"
+                  airflow dags test "$dag_id" 2024-12-01 || exit 1
+              done
+          else
+              echo "No DAG files found in the current directory."
+              exit 1
+          fi
 
       - name: Create Pull Request
         id: create_pr
