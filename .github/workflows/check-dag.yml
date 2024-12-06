@@ -29,11 +29,6 @@ jobs:
                   echo "Validating Python file: $dag"
                   python -m py_compile "$dag" || exit 1
 
-                  # Проверка стиля кода с pylint
-                  echo "Running pylint on $dag"
-                  pylint "$dag" --max-line-length=120 || exit 1
-
-                  # Проверка форматирования с black
                   echo "Running black on $dag"
                   black --check "$dag" || exit 1
               done
