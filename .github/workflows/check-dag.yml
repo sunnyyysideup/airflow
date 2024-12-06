@@ -20,31 +20,26 @@ jobs:
       - name: Install dependencies
         run: |
           pip install apache-airflow[cncf.kubernetes,pandas,virtualenv]
-
       - name: Validate Python files
         run: |
           if ls *.py > /dev/null 2>&1; then
               for dag in *.py; do
                   echo "Validating Python file: $dag"
                   python -m py_compile "$dag" || exit 1
-
                   if ! grep -q 'start_date' "$dag"; then
                       echo "ERROR: 'start_date' not found in $dag"
                       exit 1
                   fi
-
                   if ! grep -q 'Task' "$dag"; then
                       echo "ERROR: No tasks defined in $dag"
                       exit 1
                   fi
-
                   echo "DAG structure is valid: $dag"
               done
           else
               echo "No Python files found."
               exit 1
           fi
-
       - name: Check for necessary imports
         run: |
           if ls *.py > /dev/null 2>&1; then
@@ -56,19 +51,16 @@ jobs:
                       echo "ERROR: 'import airflow' or 'from airflow' not found in $dag"
                       exit 1
                   fi
-
                   if ! grep -q 'from airflow.operators' "$dag"; then
                       echo "ERROR: No operators imported in $dag"
                       exit 1
                   fi
-
                   echo "Imports are correct in $dag"
               done
           else
               echo "No Python files found."
               exit 1
           fi
-
       - name: Check for valid start_date in DAG
         run: |
           if ls *.py > /dev/null 2>&1; then
@@ -86,14 +78,12 @@ jobs:
                       echo "ERROR: Invalid start_date format in $dag"
                       exit 1
                   fi
-
                   echo "start_date is valid in $dag"
               done
           else
               echo "No Python files found."
               exit 1
           fi
-
       - name: Create Pull Request
         id: create_pr
         uses: peter-evans/create-pull-request@v5
@@ -106,10 +96,15 @@ jobs:
             - DAG Name: ${{ github.ref_name }}
           labels: validated-dag
 
+      - name: Add automerge label to PR
+        if: success() && steps.create_pr.outputs.pull-request-url != ''
+        run: |
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -d '{"labels":["automerge"]}' \
+          "https://api.github.com/repos/${{ github.repository }}/issues/${{ steps.create_pr.outputs.pull-request-number }}/labels"
+      
       - name: Auto-Merge Pull Request
         if: success() && steps.create_pr.outputs.pull-request-url != ''
         uses: pascalgn/automerge-action@v0.15.5
-        with:
-           merge-method: squash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
