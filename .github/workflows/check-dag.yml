@@ -19,7 +19,7 @@ jobs:
 
       - name: Install Airflow with dependencies
         run: |
-          pip install apache-airflow[cncf.kubernetes, pandas, virtualenv]
+          pip install apache-airflow[cncf.kubernetes,pandas,virtualenv]
 
       - name: Configure Airflow and Initialize Database
         run: |
