@@ -1,20 +1,25 @@
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from datetime import datetime
+"""
+This DAG demonstrates a simple Airflow workflow that prints a message.
+"""
 
-# Функция для выполнения
+from datetime import datetime  
+from airflow import DAG 
+from airflow.operators.python import PythonOperator
+
 def print_hello():
+    """
+    This function prints a greeting message.
+    """
     print("Hello from Airflow!")
 
-# Определение DAG
 with DAG(
-    dag_id="simple_test_dag",  # Уникальный идентификатор DAG
-    schedule_interval=None,  # Запускается только вручную
-    start_date=datetime(2024, 12, 1),  # Дата начала
-    catchup=False,  # Не запускать пропущенные задачи
+    dag_id="simple_test_dag", 
+    schedule_interval=None,  
+    start_date=datetime(2024, 12, 1),
+    catchup=False,  
 ) as dag:
-    # Оператор Python
+
     hello_task = PythonOperator(
-        task_id="say_hello",  # Идентификатор задачи
-        python_callable=print_hello,  # Указание на функцию
+        task_id="say_hello",  
+        python_callable=print_hello,  
     )
