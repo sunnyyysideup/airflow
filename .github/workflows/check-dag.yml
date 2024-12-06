@@ -3,7 +3,7 @@ name: Check and Merge DAG
 on:
   push:
     branches:
-      - 'dag/*' 
+      - 'dag/*'
 
 jobs:
   test_and_merge:
@@ -24,8 +24,9 @@ jobs:
       - name: Validate DAG files
         run: |
           for dag in dags/*.py; do
-            echo "Validating $dag"
-            airflow dags test $(basename "$dag" .py) 2024-12-01 || exit 1
+              dag_id=$(grep -oP "dag_id=['\"]\K[^'\"]+" "$dag")
+              echo "Validating DAG: $dag_id from $dag"
+              airflow dags test "$dag_id" 2024-12-01 || exit 1
           done
 
       - name: Create Pull Request
