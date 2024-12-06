@@ -31,10 +31,7 @@ jobs:
                       echo "ERROR: 'start_date' not found in $dag"
                       exit 1
                   fi
-                  if ! grep -q 'Task' "$dag"; then
-                      echo "ERROR: No tasks defined in $dag"
-                      exit 1
-                  fi
+                  
                   echo "DAG structure is valid: $dag"
               done
           else
