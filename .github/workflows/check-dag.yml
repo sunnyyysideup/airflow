@@ -17,12 +17,14 @@ jobs:
         with:
           python-version: '3.8'
 
-      - name: Install Airflow
+      - name: Install Airflow with dependencies
         run: |
-          pip install apache-airflow
+          pip install apache-airflow[cncf.kubernetes, pandas, virtualenv]
 
-      - name: Initialize Airflow Database
+      - name: Configure Airflow and Initialize Database
         run: |
+          mkdir -p ~/airflow
+          echo -e "[core]\ndags_folder = $(pwd)" > ~/airflow/airflow.cfg
           airflow db init
 
       - name: Validate DAG files
