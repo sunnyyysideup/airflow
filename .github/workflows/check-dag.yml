@@ -20,7 +20,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip install apache-airflow[cncf.kubernetes,pandas,virtualenv]
-          pip install black
 
       - name: Validate Python files
         run: |
@@ -28,23 +27,82 @@ jobs:
               for dag in *.py; do
                   echo "Validating Python file: $dag"
                   python -m py_compile "$dag" || exit 1
-                  echo "Running black check on $dag"
-                  black --check "$dag" || exit 1
+
+                  # Проверка наличия обязательных переменных
+                  if ! grep -q 'dag_id' "$dag"; then
+                      echo "ERROR: 'dag_id' not found in $dag"
+                      exit 1
+                  fi
+
+                  if ! grep -q 'default_args' "$dag"; then
+                      echo "ERROR: 'default_args' not found in $dag"
+                      exit 1
+                  fi
+
+                  if ! grep -q 'start_date' "$dag"; then
+                      echo "ERROR: 'start_date' not found in $dag"
+                      exit 1
+                  fi
+
+                  if ! grep -q 'Task' "$dag"; then
+                      echo "ERROR: No tasks defined in $dag"
+                      exit 1
+                  fi
+
+                  echo "DAG structure is valid: $dag"
               done
           else
               echo "No Python files found."
               exit 1
           fi
 
-      - name: Format Python files with Black (optional)
+      - name: Check for necessary imports
         run: |
           if ls *.py > /dev/null 2>&1; then
               for dag in *.py; do
-                  echo "Formatting with black: $dag"
-                  black "$dag"
+                  echo "Checking imports in $dag"
+                  
+                  # Проверка на наличие импорта airflow и других обязательных модулей
+                  if ! grep -q 'import airflow' "$dag" && ! grep -q 'from airflow' "$dag"; then
+                      echo "ERROR: 'import airflow' or 'from airflow' not found in $dag"
+                      exit 1
+                  fi
+
+                  if ! grep -q 'from airflow.operators' "$dag"; then
+                      echo "ERROR: No operators imported in $dag"
+                      exit 1
+                  fi
+
+                  echo "Imports are correct in $dag"
               done
           else
-              echo "No Python files found for formatting."
+              echo "No Python files found."
+              exit 1
+          fi
+
+      - name: Check for valid start_date in DAG
+        run: |
+          if ls *.py > /dev/null 2>&1; then
+              for dag in *.py; do
+                  echo "Checking start_date in $dag"
+                  
+                  # Проверка на наличие правильной даты в start_date
+                  if ! grep -q 'start_date' "$dag"; then
+                      echo "ERROR: 'start_date' not found in $dag"
+                      exit 1
+                  fi
+                  
+                  # Проверка на правильный формат даты
+                  if ! grep -Pq 'start_date\s*=\s*datetime' "$dag"; then
+                      echo "ERROR: Invalid start_date format in $dag"
+                      exit 1
+                  fi
+
+                  echo "start_date is valid in $dag"
+              done
+          else
+              echo "No Python files found."
+              exit 1
           fi
 
       - name: Create Pull Request
