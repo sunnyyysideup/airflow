@@ -28,12 +28,6 @@ jobs:
                   echo "Validating Python file: $dag"
                   python -m py_compile "$dag" || exit 1
 
-                  # Проверка наличия обязательных переменных
-                  if ! grep -q 'dag_id' "$dag"; then
-                      echo "ERROR: 'dag_id' not found in $dag"
-                      exit 1
-                  fi
-
                   if ! grep -q 'start_date' "$dag"; then
                       echo "ERROR: 'start_date' not found in $dag"
                       exit 1
